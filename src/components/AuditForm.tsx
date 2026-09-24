@@ -34,68 +34,74 @@ export default function AuditForm({ reply, auditorId, onAuditSaved }: AuditFormP
     setSubmitting(false);
 
     if (!result.success) {
-      setNotification({ type: 'error', message: result.error || 'Ocurrió un error.' });
+      setNotification({ type: 'error', message: result.error || 'Error al guardar.' });
     } else {
-      setNotification({ type: 'success', message: 'Evaluación registrada correctamente en el servidor.' });
+      setNotification({ type: 'success', message: 'Evaluación registrada en el servidor correctamente.' });
       onAuditSaved();
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t border-base-200">
-      <h4 className="font-bold text-sm uppercase tracking-wider">
-        {reply.audit_reviews ? 'Actualizar Evaluación' : 'Registrar Evaluación de Calidad'}
-      </h4>
+    <form onSubmit={handleSubmit} className="space-y-5 pt-6 border-t border-slate-200">
+      <div className="flex items-center justify-between">
+        <h4 className="font-bold text-base text-slate-900">
+          {reply.audit_reviews ? 'Actualizar Evaluación' : 'Registrar Evaluación de Calidad'}
+        </h4>
+        {reply.audit_reviews?.auditor && (
+          <span className="text-xs text-slate-500 font-medium">
+            Última auditoría por: <strong className="text-slate-800">{reply.audit_reviews.auditor.name}</strong>
+          </span>
+        )}
+      </div>
 
       {notification && (
-        <div className={`alert text-sm py-2 ${notification.type === 'error' ? 'alert-error' : 'alert-success text-white'}`}>
+        <div className={`p-4 rounded-xl text-sm font-semibold ${
+          notification.type === 'error' ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+        }`}>
           {notification.message}
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="form-control">
-          <label className="label py-1">
-            <span className="label-text font-medium text-xs">Puntaje (1 al 5)</span>
-          </label>
+        <div className="space-y-1">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Puntaje (1 al 5)</label>
           <select 
-            className="select select-bordered select-sm w-full"
+            className="w-full bg-white border border-slate-300 text-slate-800 text-sm font-medium rounded-xl p-3 focus:ring-2 focus:ring-slate-900 outline-none"
             value={score} 
             onChange={(e) => setScore(Number(e.target.value))}
           >
-            <option value={5}>5 - Excelente</option>
-            <option value={4}>4 - Bueno</option>
-            <option value={3}>3 - Regular</option>
-            <option value={2}>2 - Deficiente</option>
-            <option value={1}>1 - Inaceptable</option>
+            <option value={5}>5 - Excelente (Alineado a la marca)</option>
+            <option value={4}>4 - Bueno (Detalles menores)</option>
+            <option value={3}>3 - Regular (Requiere ajustes)</option>
+            <option value={2}>2 - Deficiente (Afecta la percepción)</option>
+            <option value={1}>1 - Inaceptable (Riesgo de cuenta)</option>
           </select>
         </div>
 
-        <div className="form-control">
-          <label className="label py-1">
-            <span className="label-text font-medium text-xs">Clasificación / Bandera</span>
-          </label>
-          <select 
-            className="select select-bordered select-sm w-full"
-            value={flag} 
-            onChange={(e) => setFlag(e.target.value as AuditFlag)}
-          >
-            <option value="flawless">flawless (Impecable)</option>
-            <option value="wrong_tone">wrong_tone (Tono inadecuado)</option>
-            <option value="wrong_question">wrong_question (Pregunta errónea)</option>
-            <option value="too_slow">too_slow (Demasiado lento)</option>
-            <option value="unresolved_risk">unresolved_risk (Riesgo sin resolver)</option>
-          </select>
-        </div>
+        <div className="space-y-1">
+  <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Diagnóstico / Clasificación</label>
+  <select 
+    className="w-full bg-white border border-slate-300 text-slate-800 text-sm font-medium rounded-xl p-3 focus:ring-2 focus:ring-slate-900 outline-none"
+    value={flag} 
+    onChange={(e) => setFlag(e.target.value as AuditFlag)}
+  >
+    <option value="flawless">Impecable - Para Onboarding</option>
+    <option value="wrong_tone">Tono incorrecto</option>
+    <option value="no_order_history_check">Sin historial de pedido</option>
+    <option value="wrong_question">Respondió algo diferente</option>
+    <option value="too_slow">Demasiado lento</option>
+    <option value="technically_correct_poor_retention">Genera recontacto</option>
+  </select>
+</div>
       </div>
 
-      <div className="form-control">
-        <label className="label py-1">
-          <span className="label-text font-medium text-xs">Retroalimentación para el Especialista</span>
+      <div className="space-y-1">
+        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          Retroalimentación para el Especialista
         </label>
         <textarea 
-          className="textarea textarea-bordered h-24 text-sm w-full"
-          placeholder="Comenta aciertos o directrices a corregir..."
+          className="w-full bg-white border border-slate-300 text-slate-800 text-sm rounded-xl p-4 h-28 focus:ring-2 focus:ring-slate-900 outline-none leading-relaxed"
+          placeholder="Comenta por qué no se cumplió la directriz o qué procedimiento debió seguirse..."
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
           required
@@ -104,10 +110,10 @@ export default function AuditForm({ reply, auditorId, onAuditSaved }: AuditFormP
 
       <button 
         type="submit" 
-        className="btn btn-primary btn-sm w-full font-bold"
+        className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-sm"
         disabled={submitting}
       >
-        {submitting ? 'Guardando en servidor...' : 'Guardar Auditoría'}
+        {submitting ? 'Guardando evaluación...' : 'Firmar y Guardar Auditoría'}
       </button>
     </form>
   );
