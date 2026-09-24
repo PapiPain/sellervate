@@ -48,3 +48,55 @@ Sigue estos pasos para clonar y levantar el proyecto en tu entorno local:
 ```bash
 git clone https://github.com/PapiPain/sellervate.git
 cd sellervate
+
+### 2. Instalar dependencias
+```bash
+npm install
+```
+
+3. Configurar variables de entorno
+Crea un archivo .env.local en la raíz del proyecto y añade tus credenciales de Supabase:
+
+Fragmento de código
+NEXT_PUBLIC_SUPABASE_URL=tu_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_supabase_anon_key
+
+4. Inicializar base de datos y datos de prueba (Seed Data)
+Ingresa a tu proyecto en Supabase y ve al SQL Editor.
+
+Copia y ejecuta el contenido del script ubicado en supabase/schema.sql.
+
+Esto generará las tablas relacionales (brands, users, support_replies, audit_reviews) y cargará 30 tickets contextuales distribuidos entre las 3 marcas y 3 especialistas.
+
+5. Iniciar el servidor local
+Bash
+npm run dev
+Abre en el navegador: http://localhost:3000.
+
+👥 Cómo Probar y Cambiar de Rol (How to Switch Role)
+El sistema cuenta con un selector de usuario en la barra superior para verificar el control de acceso en servidor:
+
+
+Líderes de Equipo (Team Leads):
+
+Selecciona a Marta Gómez o Nuria Fernández.
+
+Acceso: Supervisión transversal de marcas, consola de auditoría activa, biblioteca pedagógica de coaching e informes ejecutivos de clientes.
+
+Especialistas de Soporte:
+
+Selecciona a Dani Rivas, Elena Torres o Carlos Morales.
+
+Acceso: Vista personal restringida en servidor. Solo pueden visualizar sus propias respuestas enviadas y las notas/feedback firmados que recibieron de los líderes.
+
+
+🛠️ Stack Tecnológico
+Framework: Next.js 15 (App Router, Server Actions)
+
+Lenguaje: TypeScript (Strict Mode)
+
+Base de Datos: PostgreSQL vía Supabase
+
+Estilos & UI: Tailwind CSS y DaisyUI
+
+Diseño: Paleta ergonómica Light Clean (#F1F3F5) orientada a turnos prolongados de soporte.
