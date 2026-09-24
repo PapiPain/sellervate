@@ -3,10 +3,43 @@
 
 import { useEffect, useState } from 'react';
 import { getRepliesAction } from '@/app/actions/audit';
-import { SupportReply, User } from '@/types/database';
+import { SupportReply, User, AuditFlag } from '@/types/database';
 
 interface SpecialistDashboardProps {
   currentUser: User;
+}
+
+// Mapeo en español para las etiquetas del especialista
+const FLAG_NAMES: Record<AuditFlag, string> = {
+  flawless: 'Impecable - Para Onboarding',
+  wrong_tone: 'Tono incorrecto',
+  no_order_history_check: 'Sin historial de pedido',
+  wrong_question: 'Respondió algo diferente',
+  too_slow: 'Demasiado lento',
+  technically_correct_poor_retention: 'Genera recontacto',
+};
+
+// Función para asignar los colores solicitados según la nota (1 al 5)
+function getScoreBadgeStyle(score: number) {
+  switch (score) {
+    case 5:
+      // 5: Verde oscuro
+      return 'bg-emerald-800 text-white border border-emerald-900';
+    case 4:
+      // 4: Verde claro
+      return 'bg-emerald-100 text-emerald-800 border border-emerald-300';
+    case 3:
+      // 3: Amarillo
+      return 'bg-amber-100 text-amber-900 border border-amber-300';
+    case 2:
+      // 2: Rojo claro
+      return 'bg-rose-100 text-rose-800 border border-rose-300';
+    case 1:
+      // 1: Rojo oscuro
+      return 'bg-rose-800 text-white border border-rose-900';
+    default:
+      return 'bg-slate-100 text-slate-800 border border-slate-300';
+  }
 }
 
 export default function SpecialistDashboard({ currentUser }: SpecialistDashboardProps) {
@@ -79,7 +112,7 @@ export default function SpecialistDashboard({ currentUser }: SpecialistDashboard
                   key={reply.id} 
                   className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 hover:border-slate-300 transition-all shadow-sm"
                 >
-                  {/* Fila superior: Marca y Estado */}
+                  {/* Fila superior: Marca, Score con color dinámico y Flag en español */}
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <span className="font-semibold text-sm px-3 py-1 rounded-lg bg-[#F1F3F5] border border-slate-200 text-slate-800">
                       {reply.brands?.name}
@@ -87,11 +120,13 @@ export default function SpecialistDashboard({ currentUser }: SpecialistDashboard
 
                     {review ? (
                       <div className="flex items-center gap-2">
-                        <span className="font-bold text-sm px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Score: {review.score} / 5
+                        {/* Nota con color según escala 1 a 5 */}
+                        <span className={`font-bold text-xs sm:text-sm px-3 py-1 rounded-full shadow-sm ${getScoreBadgeStyle(review.score)}`}>
+                          Nota: {review.score} / 5
                         </span>
-                        <span className="text-xs font-mono px-2.5 py-1 rounded-md bg-[#F1F3F5] border border-slate-200 text-slate-700">
-                          {review.flag}
+                        {/* Flag en español */}
+                        <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200 text-slate-700">
+                          {FLAG_NAMES[review.flag as AuditFlag] || review.flag}
                         </span>
                       </div>
                     ) : (

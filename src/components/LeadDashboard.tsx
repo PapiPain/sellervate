@@ -10,45 +10,55 @@ interface LeadDashboardProps {
   currentUser: User;
 }
 
-// Mapeo amigable y profesional en español para presentación externa
-const FLAG_LABELS: Record<AuditFlag, { label: string; desc: string; color: string; barColor: string }> = {
+// Configuración ordenada estrictamente de MEJOR a PEOR con los colores exactos pedidos
+const FLAG_CONFIG: Record<AuditFlag, { label: string; desc: string; barColor: string }> = {
+  // 1. Mejor
   flawless: {
-    label: 'Respuestas Impecables (Alineadas al Manual)',
+    label: 'Impecable - Para Onboarding',
     desc: 'Adherencia total al procedimiento y tono corporativo.',
-    color: 'text-emerald-700 bg-emerald-50 border-emerald-200',
-    barColor: 'bg-emerald-500',
+    barColor: 'bg-emerald-800', // Verde oscuro
   },
-  wrong_tone: {
-    label: 'Desviación de Tono de Marca',
-    desc: 'Estilo inadecuado (demasiado informal o poco empático).',
-    color: 'text-amber-800 bg-amber-50 border-amber-200',
-    barColor: 'bg-amber-500',
-  },
-  no_order_history_check: {
-    label: 'Omisión del Historial de Pedido',
-    desc: 'Cierre de ticket sin verificación de antecedentes del cliente.',
-    color: 'text-rose-800 bg-rose-50 border-rose-200',
-    barColor: 'bg-rose-500',
-  },
-  wrong_question: {
-    label: 'Respuesta a Pregunta No Formulada',
-    desc: 'Información desalineada con la duda real del comprador.',
-    color: 'text-orange-800 bg-orange-50 border-orange-200',
-    barColor: 'bg-orange-500',
-  },
-  too_slow: {
-    label: 'Tiempo Excesivo de Respuesta',
-    desc: 'Demora fuera del estándar de tiempo acordado.',
-    color: 'text-yellow-800 bg-yellow-50 border-yellow-200',
-    barColor: 'bg-yellow-500',
-  },
+  // 2. Aceptable pero mejorable
   technically_correct_poor_retention: {
-    label: 'Técnicamente Correcta pero Induce Recontacto',
+    label: 'Genera recontacto (Técnicamente correcta)',
     desc: 'Respuesta exacta pero incompleta que genera dudas adicionales.',
-    color: 'text-slate-800 bg-slate-100 border-slate-200',
-    barColor: 'bg-slate-500',
+    barColor: 'bg-emerald-400', // Verde claro
+  },
+  // 3. Falla operativa leve
+  too_slow: {
+    label: 'Demasiado lento',
+    desc: 'Demora fuera del estándar de tiempo acordado.',
+    barColor: 'bg-amber-400', // Amarillo
+  },
+  // 4. Falla de comunicación
+  wrong_tone: {
+    label: 'Tono incorrecto',
+    desc: 'Estilo inadecuado (demasiado informal o poco empático).',
+    barColor: 'bg-rose-400', // Rojo claro
+  },
+  // 5. Desatención
+  wrong_question: {
+    label: 'Respondió algo diferente',
+    desc: 'Información desalineada con la duda real del comprador.',
+    barColor: 'bg-rose-900', // Rojo oscuro
+  },
+  // 6. Peor (Falla crítica de proceso)
+  no_order_history_check: {
+    label: 'Sin historial de pedido',
+    desc: 'Cierre de ticket sin verificación de antecedentes ni datos del cliente.',
+    barColor: 'bg-slate-400', // Gris
   },
 };
+
+// Orden explícito de mejor a menor gravedad para el renderizado
+const ORDERED_FLAGS: AuditFlag[] = [
+  'flawless',
+  'technically_correct_poor_retention',
+  'too_slow',
+  'wrong_tone',
+  'wrong_question',
+  'no_order_history_check',
+];
 
 export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -90,15 +100,13 @@ export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
 
   const currentBrandDetails = brands.find((b) => b.id === selectedBrandId);
 
-  // Casos para Coaching
   const auditedReplies = replies.filter((r) => Boolean(r.audit_reviews));
   const goldenExamples = auditedReplies.filter((r) => r.audit_reviews?.flag === 'flawless');
   const criticalExamples = auditedReplies.filter((r) => (r.audit_reviews?.score || 5) <= 2);
 
-  // Traducir el principal foco de mitigación al español
   const getTopIssueSpanish = (issueKey: string) => {
-    if (issueKey in FLAG_LABELS) {
-      return FLAG_LABELS[issueKey as AuditFlag].label;
+    if (issueKey in FLAG_CONFIG) {
+      return FLAG_CONFIG[issueKey as AuditFlag].label;
     }
     return 'Sin desviaciones críticas recurrentes';
   };
@@ -305,7 +313,7 @@ export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
           {/* Ejemplos de Oro */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+              <span className="w-3 h-3 rounded-full bg-emerald-800"></span>
               <h4 className="text-lg font-bold text-slate-900">Respuestas Modelo (5/5 Impecables)</h4>
             </div>
 
@@ -345,7 +353,7 @@ export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
           {/* Antipatrones */}
           <div className="space-y-4 pt-4">
             <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-rose-500"></span>
+              <span className="w-3 h-3 rounded-full bg-rose-900"></span>
               <h4 className="text-lg font-bold text-slate-900">Errores Críticos (Peligro de Pérdida de Cuenta — Calificación &le; 2)</h4>
             </div>
 
@@ -357,7 +365,7 @@ export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
                   <div key={item.id} className="bg-white border-2 border-rose-100 rounded-2xl p-6 shadow-sm space-y-4">
                     <div className="flex justify-between items-center pb-2 border-b border-slate-100">
                       <span className="font-bold text-xs px-2.5 py-1 rounded bg-rose-50 text-rose-800 border border-rose-200">
-                        {item.brands?.name} — {FLAG_LABELS[item.audit_reviews?.flag as AuditFlag]?.label || item.audit_reviews?.flag}
+                        {item.brands?.name} — {FLAG_CONFIG[item.audit_reviews?.flag as AuditFlag]?.label || item.audit_reviews?.flag}
                       </span>
                       <span className="text-xs text-slate-500 font-semibold">Agente: {item.users?.name}</span>
                     </div>
@@ -385,11 +393,10 @@ export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
       )}
 
       {/* ========================================================================= */}
-      {/* VISTA 3: INFORME PARA EL CLIENTE EXTERNO (DEMOSTRACIÓN CON BARRAS) */}
+      {/* VISTA 3: INFORME PARA EL CLIENTE EXTERNO */}
       {/* ========================================================================= */}
       {activeMode === 'proof' && brandTrends && (
         <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm space-y-8">
-          {/* Encabezado Corporativo en Español */}
           <div className="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 bg-indigo-50 px-3.5 py-1.5 rounded-full border border-indigo-200">
@@ -411,7 +418,7 @@ export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
             </div>
           </div>
 
-          {/* Tarjetas KPI Superiores en Español */}
+          {/* Tarjetas KPI Superiores */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-[#F1F3F5] border border-slate-200 p-6 rounded-2xl shadow-sm">
               <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Muestreo Auditado</div>
@@ -433,7 +440,7 @@ export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
 
             <div className="bg-[#F1F3F5] border border-slate-200 p-6 rounded-2xl shadow-sm">
               <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Respuestas Impecables</div>
-              <div className="text-3xl font-extrabold text-emerald-600 mt-2">{brandTrends.exemplaryCount}</div>
+              <div className="text-3xl font-extrabold text-emerald-800 mt-2">{brandTrends.exemplaryCount}</div>
               <p className="text-xs text-slate-500 mt-1">100% de adherencia a la marca</p>
             </div>
 
@@ -446,20 +453,20 @@ export default function LeadDashboard({ currentUser }: LeadDashboardProps) {
             </div>
           </div>
 
-          {/* Gráfico de Barras Proporcionales de Distribución */}
+          {/* Gráfico de Barras Proporcionales de Distribución (Ordenado de Mejor a Peor) */}
           <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <h4 className="font-bold text-lg text-slate-900">
                 Distribución de Calidad por Diagnóstico
               </h4>
               <span className="text-xs text-slate-500">
-                Porcentaje sobre {brandTrends.auditedCount} respuestas auditadas
+                Porcentaje sobre {brandTrends.auditedCount} respuestas auditadas (ordenado por nivel de severidad)
               </span>
             </div>
 
             <div className="space-y-5">
-              {(Object.keys(FLAG_LABELS) as AuditFlag[]).map((flagKey) => {
-                const info = FLAG_LABELS[flagKey];
+              {ORDERED_FLAGS.map((flagKey) => {
+                const info = FLAG_CONFIG[flagKey];
                 const count = brandTrends.flagDistribution[flagKey] || 0;
                 const percentage = brandTrends.auditedCount > 0 
                   ? Math.round((count / brandTrends.auditedCount) * 100) 
